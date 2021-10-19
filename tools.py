@@ -33,7 +33,7 @@ def read_xyz(file_name):
     
     data = data[1:]
     atoms = data[:,0]
-    coord = data[:,1:]
+    coord = data[:,1:].astype(np.float)
     return N_atoms , atoms , coord
 
 def charge():
