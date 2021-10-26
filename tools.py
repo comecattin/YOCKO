@@ -104,6 +104,7 @@ def pro_gauss(gauss_A, gauss_B):
 	return (p, diff,New_prefac,New_center)
 	
 def Gauss_overlap(A,B):
+	pass
         
     
 if __name__ == '__main__':
