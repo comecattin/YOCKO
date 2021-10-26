@@ -14,6 +14,17 @@ lecture de fichier .xyz
 import numpy as np
 from scipy import random
 
+
+class gaussian :
+	"""
+	Definition of gaussian function as a class
+	"""
+	def __init__(self,alpha,mean) :
+		self.alpha = alpha
+		self.center = mean
+		
+
+
 def read_xyz(file_name):
     """
     Load .xyz file
@@ -83,8 +94,11 @@ def read_basis(file_name):
     
 
 def pro_gauss(gauss_A, gauss_B):
-	a,center_A=gauss_A
-	b, center_B= gauss_B
+	"""
+	Product of two gaussian gauss_A and gauss_B
+	"""
+	a , center_A = gauss_A.alpha , gauss_A.center
+	b , center_B = gauss_B.alpha , gauss_B.center
 	p= a+b
 	diff=np.linalg.norm( center_A - center_B )**2
 	Norm= (4*a*b/(math.pi**2))*0.75
@@ -101,10 +115,19 @@ def pro_gauss(gauss_A, gauss_B):
 	#Parameters of the new gaussian
 	
 		
-	return (p, diff,New_prefac,New_center)
+	return p, diff,New_prefac,New_center
 	
-def Gauss_overlap(A,B):
-	pass
+def Gauss_overlap(gauss_A,gauss_B):
+	"""
+	Calculate the overlap of two gaussian function gauss_A and gauss_B
+	"""
+	p , diff , New_prefac , New_center = pro_gauss(gauss_A,gauss_B)
+	
+	A = (np.pi/p) ** 1.5
+	val = A * New_prefac
+	
+	return val
+
         
     
 if __name__ == '__main__':
