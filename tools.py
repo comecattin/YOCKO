@@ -12,6 +12,7 @@ lecture de fichier .xyz
 """
 
 import numpy as np
+from scipy import random
 
 def read_xyz(file_name):
     """
@@ -45,52 +46,35 @@ def charge():
     
     return dico_charge
 
-def read_basis(file_name):
-    """
-    read basis gausian file
-    only with STO-3G in this version
-    """
-    file = open(file_name,'r')
-    
-    data = []
-    atoms = []
-    exp_coeff_S = []
-    exp_coeff_SP = []
-    
-    for i, line in enumerate(file):
+
+
+
+def pro_gauss(gauss_A, gauss_B):
+	a,center_A=gauss_A
+	b, center_B= gauss_B
+	p= a+b
+	diff=np.linalg.norm( center_A - center_B )**2
+	Norm= (4*a*b/(math.pi**2))*0.75
+	New_prefac= N*exp(-a*b/p*diff)
+	New_center=(a*center_A+b*center_B)/p
+	
+	   
+	   #Input needs to be the parameters (tuple type) of each gaussian function
+	   #(a, center_A) where (1/(sig*sqrt(2pi)))*exp(-(x-mu)**2/(2sig**2)) is gauss_A 
+	   #as a function of x
+	   #a=1/(2sig**2)
+	   #mu=center_A
+	   #Na prefactor factor=(1/(sig*sqrt(2pi))))
+	#Parameters of the new gaussian
+	
+		
+	return (p, diff,New_prefac,New_center)
+	
+def Gauss_overlap(A,B):
         
-        data.append(line.replace('*','').replace('D','e').split())
-        
-        if line[0:2] == 'S ':
-            
-            atoms.append(data[i-1][0])
-            
-        if line[0] == '*':
-            if data[i-4][0] == 'S':
-                exp_coeff_S.append(data[i-3:i])
-            
-            if data[i-4][0] == 'SP':
-                exp_coeff_SP.append(data[i-3:i])
-                exp_coeff_S.append(data[i-7:i-4])
-                                
-    file.close()
-        
-    data = data[12:]
     
-    return data , atoms, np.array(exp_coeff_S).astype(np.float), np.array(exp_coeff_SP).astype(np.float)
-    
-
-
-
-
-
-
-
-
-
-
 if __name__ == '__main__':
     file_name = 'luminol.xyz'
     N_atoms, atoms , coord = read_xyz(file_name)
     dico_charge = charge()
-    data , atoms, exp_coeff_S, exp_coeff_SP = read_basis('sto-3g.1.gbs')
+	
