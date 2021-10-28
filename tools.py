@@ -5,24 +5,13 @@ Created on Mon Oct 18 19:49:16 2021
 
 @author: comecattin
 
-lecture de fichier .xyz
+read needed file for YOCKO
 
 
 
 """
 
 import numpy as np
-from scipy import random
-
-
-class gaussian :
-	"""
-	Definition of gaussian function as a class
-	"""
-	def __init__(self,alpha,mean) :
-		self.alpha = alpha
-		self.center = mean
-		
 
 
 def read_xyz(file_name):
@@ -93,40 +82,40 @@ def read_basis(file_name):
     return data , atoms, np.array(exp_coeff_S).astype(np.float), np.array(exp_coeff_SP).astype(np.float)
     
 
-def pro_gauss(gauss_A, gauss_B):
-	"""
-	Product of two gaussian gauss_A and gauss_B
-	"""
-	a , center_A = gauss_A.alpha , gauss_A.center
-	b , center_B = gauss_B.alpha , gauss_B.center
-	p= a+b
-	diff=np.linalg.norm( center_A - center_B )**2
-	Norm= (4*a*b/(math.pi**2))*0.75
-	New_prefac= N*exp(-a*b/p*diff)
-	New_center=(a*center_A+b*center_B)/p
-	
-	   
-	   #Input needs to be the parameters (tuple type) of each gaussian function
-	   #(a, center_A) where (1/(sig*sqrt(2pi)))*exp(-(x-mu)**2/(2sig**2)) is gauss_A 
-	   #as a function of x
-	   #a=1/(2sig**2)
-	   #mu=center_A
-	   #Na prefactor factor=(1/(sig*sqrt(2pi))))
-	#Parameters of the new gaussian
-	
-		
-	return p, diff,New_prefac,New_center
-	
-def Gauss_overlap(gauss_A,gauss_B):
-	"""
-	Calculate the overlap of two gaussian function gauss_A and gauss_B
-	"""
-	p , diff , New_prefac , New_center = pro_gauss(gauss_A,gauss_B)
-	
-	A = (np.pi/p) ** 1.5
-	val = A * New_prefac
-	
-	return val
+# def pro_gauss(gauss_A, gauss_B):
+# 	"""
+# 	Product of two gaussian gauss_A and gauss_B
+# 	"""
+# 	a , center_A = gauss_A.alpha , gauss_A.center
+# 	b , center_B = gauss_B.alpha , gauss_B.center
+# 	p= a+b
+# 	diff=np.linalg.norm( center_A - center_B )**2
+# 	Norm= (4*a*b/(np.pi**2))*0.75
+# 	New_prefac= Norm*np.exp(-a*b/p*diff)
+# 	New_center=(a*center_A+b*center_B)/p
+# 	
+# 	   
+# 	   #Input needs to be the parameters (tuple type) of each gaussian function
+# 	   #(a, center_A) where (1/(sig*sqrt(2pi)))*exp(-(x-mu)**2/(2sig**2)) is gauss_A 
+# 	   #as a function of x
+# 	   #a=1/(2sig**2)
+# 	   #mu=center_A
+# 	   #Na prefactor factor=(1/(sig*sqrt(2pi))))
+# 	#Parameters of the new gaussian
+# 	
+# 		
+# 	return p, diff,New_prefac,New_center
+# 	
+# def Gauss_overlap(gauss_A,gauss_B):
+# 	"""
+# 	Calculate the overlap of two gaussian function gauss_A and gauss_B
+# 	"""
+# 	p , diff , New_prefac , New_center = pro_gauss(gauss_A,gauss_B)
+# 	
+# 	A = (np.pi/p) ** 1.5
+# 	val = A * New_prefac
+# 	
+# 	return val
 
         
     
@@ -134,5 +123,5 @@ if __name__ == '__main__':
     file_name = 'luminol.xyz'
     N_atoms, atoms , coord = read_xyz(file_name)
     dico_charge = charge()
-    data , atoms, exp_coeff_S, exp_coeff_SP = read_basis('sto-3g.1.gbs')
+    
 	
