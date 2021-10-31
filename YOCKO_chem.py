@@ -19,7 +19,7 @@ def get_integrals(file_name):
     
     size = YOCKO_tools.basis_size(file_name)
     N_atoms, atoms_list , coord = YOCKO_tools.read_xyz(file_name)
-    data , atoms_basis, exp_coeff_S, exp_coeff_SP = YOCKO_tools.read_basis('sto-3g.1.gbs')
+    data , atoms_basis, exp_coeff_S, exp_coeff_P = YOCKO_tools.read_basis('sto-3g.1.gbs')
     
     #Initialisation
     S = np.zeros((size,size)) #Overlap
@@ -36,12 +36,25 @@ def get_integrals(file_name):
         #Quantum numbers
         for j in range(YOCKO_tools.quantum_number()[atoms]):
             
-            #Pas terminé....
-            #get alpha
-            alpha_list = 1
-            
-            print(j)
-        
+            if j == 0:
+                #S type
+                #get alpha
+                alpha_list = exp_coeff_S[i,:,0]
+                #get coefficient
+                coeff_list = exp_coeff_S[i,:,1]
+                
+            if j == 1:
+                #P type
+                alpha_list = exp_coeff_P[i,:,0]
+                #get coefficient
+                coeff_list = exp_coeff_P[i,:,1]
+                
+            #Gaussian
+            for k in range(len(alpha_list)):
+                gauss_A = YOCKO_math.gaussian(alpha_list[k],coeff_list[k])
+                print(gauss_A.alpha , gauss_A.center)
+                
+                
         
     
 
