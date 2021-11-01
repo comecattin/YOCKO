@@ -176,51 +176,52 @@ def Diff_Succ_DM(P_1,P_2,file_name):
          for j in range(size):
              x += size**-2*(P_1[i,j]-P_2[i,j])**2
      return x**0.5
-                
-                
+ 
+ 
+ 
+def Algo(N,file_name_xyz,file_name_basis):
+	H_core= get_integrals(file_name_xyz, file_name_basis)[4]
+	multi_elec_tensor=   get_integrals(file_name_xyz, file_name_basis)[3]        
+	size = YOCKO_tools.basis_size(file_name)
+ 	
+	P=np.zeros((size,size))
+	P_prev=np.zeros((size,size))
+	P_list=[]
+	Hcore= T+V	
+	threshold=100
+
+	while threshold>10**-4:
+			G=np.zeros((size,size))
+			for i in range(size):
+				 for j in range(size):
+					 	for x in range(size):
+							   for y in range(size):
+								       G[i,j]+=P[x,y]*(multi_elec_tensor[i,j,y,x]-0.5*multi_elec_tensor[i,x,y,j])
+	Fock = Hcore + G	
+	Fock_orth=dot(X.T,dor(Fock,X))
+	evalFock_orth, C_orth= np.linalg.eig(Fock_orth)	
+
+	index=evalFock_orth.argsort()
+	evalFock_orth=evalFock_orth[index]
+	C_orth=C_orth[:,index]
+	C=dot(X,C_orth)	
+ 	
+#Form new density matrix P (sum over electron pairs, not over the entire basis set)
+	for i in range (size):
+			for j in range (size):
+				for a in range(int(N/2)):
+						P[i,j]=2*C[i,a]*C[j,a]
+	P_list.append(P)
+	treshold=Diff_Succ_DM(P_prev, P)
+	P_prev=P.copy() 
+	return (P_prev)              
 
 if __name__ == '__main__' :
     
     file_name_xyz = 'H2.xyz'
     file_name_basis = 'sto-3g.1.gbs'
     S , T , V, multi_elec, H_core = get_integrals(file_name_xyz,file_name_basis)
-size = YOCKO_tools.basis_size(file_name)
- 	
-P=np.zeros((size,size))
-P_prev=np.zeros((size,size))
-P_list=[]
-Hcore= T+V	
-threshold=100
 
-while threshold>10**-4:
- 	G=np.zeros((size,size))
- 	for i in range(size):
-		for j in range(size):
- 			for x in range(size):
-				for y in range(size):
- 				   G[i,j]+=P[x,y]*(multi_elec_tensor[i,j,y,x]-0.5*multi_elec_tensor[i,x,y,j])
- 	Fock = Hcore + G
- 	
- 	
-Fock_orth=dot(X.T,dor(Fock,X))	
-evalFock_orth,C_orth=np.linalg.eig(Fock_orth)
-
-index=evalFock_orth.argsort()
-evalFock_orth=evalFock_orth[index]
-C_orth=C_orth[:,index]
-C=dot(X,C_orth)
-N =  #number of electrons, je ne trouve pas dans le code le nom de cette variable x)
-#Normal on ne l'a pas encore definie ;) , tu peux mettre ce code dans une fonction au dessus du if name == main ?
-#Tu peux faire rentrer le nombre d'électron comme variable de la fonction !	
- 	
-#Form new density matrix P (sum over electron pairs, not over the entire basis set)
-for i in range (size):
- 	for j in range (size):
-		for a in range(int(N/2)):
- 			P[i,j]=2*C[i,a]*C[j,a]
-P_list.append(P)
-treshold=Diff_Succ_DM(P_prev, P)
-P_prev=P.copy()
 	
 	
 	
