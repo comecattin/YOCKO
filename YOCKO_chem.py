@@ -9,32 +9,35 @@ The chemistry part of YOCKO
 """
 
 import numpy as np
+from itertools import combinations
 import YOCKO_tools
 import YOCKO_math
 
-def get_integrals(file_name):
+def get_integrals(file_name_xyz,file_name_basis):
     """
     Compute the integrals of the system
     """
     
-    size = YOCKO_tools.basis_size(file_name)
-    N_atoms, atoms_list , coord = YOCKO_tools.read_xyz(file_name)
-    data , atoms_basis, exp_coeff_S, exp_coeff_P = YOCKO_tools.read_basis('sto-3g.1.gbs')
-    
+    size = YOCKO_tools.basis_size(file_name_xyz)
+    N_atoms, atoms_list , coord = YOCKO_tools.read_xyz(file_name_xyz)
+    data , atoms_basis, exp_coeff_S, exp_coeff_P = YOCKO_tools.read_basis(file_name_basis)
     #Initialisation
     S = np.zeros((size,size)) #Overlap
     T = np.zeros((size,size)) #Kinetic
     V = np.zeros((size,size)) #Potential
     multi_elec = np.zeros((size,size,size,size)) #Multi electron tensor
-    
+  
+
+
+
     #Atoms
-    for i , atoms in enumerate(atoms_list):
+    for i , atoms_A in enumerate(atoms_list):
         
-        R = coord[i]
-        Z = YOCKO_tools.charge()[atoms]
+        R_A = coord[i]
+        Z_A = YOCKO_tools.charge()[atoms_A]
         
-        #Quantum numbers
-        for j in range(YOCKO_tools.quantum_number()[atoms]):
+        #Orbital
+        for j in range(YOCKO_tools.quantum_number()[atoms_A]):
             
             if j == 0:
                 #S type
@@ -42,6 +45,7 @@ def get_integrals(file_name):
                 alpha_list = exp_coeff_S[i,:,0]
                 #get coefficient
                 coeff_list = exp_coeff_S[i,:,1]
+                
                 
             if j == 1:
                 #P type
@@ -52,31 +56,136 @@ def get_integrals(file_name):
             #Gaussian
             for k in range(len(alpha_list)):
                 gauss_A = YOCKO_math.gaussian(alpha_list[k],coeff_list[k])
-                print(gauss_A.alpha , gauss_A.center)
                 
-#B is the basis set size, and the dimention of the S T V martices
+                
+                
+                
+                #Other atom
+                for i_prime , atoms_B in enumerate(atoms_list):
+                    R_B = coord[i_prime]
+                    Z_B = YOCKO_tools.charge()[atoms_B]
+                    
+                    #Other Orbital
+                    for j_prime in range(YOCKO_tools.quantum_number()[atoms_B]):
+                        
+                        if j_prime == 0:
+                            #S type
+                            #get alpha
+                            alpha_list_B = exp_coeff_S[i_prime,:,0]
+                            #get coefficient
+                            coeff_list_B = exp_coeff_S[i_prime,:,1]
+                            
+                            
+                        if j_prime == 1:
+                            #P type
+                            alpha_list_B = exp_coeff_P[i_prime,:,0]
+                            #get coefficient
+                            coeff_list_B = exp_coeff_P[i_prime,:,1]
+                            
+                        #Other Gaussian
+                        for k_prime in range(len(alpha_list_B)):
+                            gauss_B = YOCKO_math.gaussian(alpha_list_B[k_prime],
+                                                          coeff_list_B[k_prime])
+                            
+                            a = (i + 1) * (j+1) - 1
+                            b = (i_prime + 1) * (j_prime +1) - 1
+                            
+                            #Overlap & kinetic matrix
+                            S[a,b] += gauss_A.center * gauss_B.center * gauss_A.overlap(gauss_B)
+                            T[a,b] += gauss_A.center * gauss_B.center * gauss_A.kinetic(gauss_B)
+                            for l in range(N_atoms):
+                                V += gauss_A.center * gauss_B.center * YOCKO_math.potential(gauss_A, 
+                                                                                            gauss_B, 
+                                                                                            l, 
+                                                                                            file_name_xyz)
+                                
+                            
+                            #Multi-electron tensor
+                            #Atoms
+                            for i_pp , atoms_C in enumerate(atoms_list):
+                                R_C = coord[i_pp]
+                                Z_C = YOCKO_tools.charge()[atoms_C]
+                                #Orbital
+                                for j_pp in range(YOCKO_tools.quantum_number()[atoms_C]):
+                                    
+                                    if j_pp == 0:
+                                        #S type
+                                        #get alpha
+                                        alpha_list_C = exp_coeff_S[i_pp,:,0]
+                                        #get coefficient
+                                        coeff_list_C = exp_coeff_S[i_pp,:,1]
+                                        
+                                        
+                                    if j_pp == 1:
+                                        #P type
+                                        alpha_list_C = exp_coeff_P[i_pp,:,0]
+                                        #get coefficient
+                                        coeff_list_C = exp_coeff_P[i_pp,:,1]
+                                        
+                                    #Gaussian
+                                    for k_pp in range(len(alpha_list_C)):
+                                        gauss_C = YOCKO_math.gaussian(alpha_list_C[k_pp],
+                                                                      coeff_list_C[k_pp])
+                                        
+                                        
+                                        #Other Atoms
+                                        for i_ppp , atoms_D in enumerate(atoms_list):
+                                            R_D = coord[i_ppp]
+                                            Z_D = YOCKO_tools.charge()[atoms_D]
+                                            #Orbital
+                                            for j_ppp in range(YOCKO_tools.quantum_number()[atoms_D]):
+                                                
+                                                if j_ppp == 0:
+                                                    #S type
+                                                    #get alpha
+                                                    alpha_list_D = exp_coeff_S[i_ppp,:,0]
+                                                    #get coefficient
+                                                    coeff_list_D = exp_coeff_S[i_ppp,:,1]
+                                                    
+                                                    
+                                                if j_ppp == 1:
+                                                    #P type
+                                                    alpha_list_D = exp_coeff_P[i_ppp,:,0]
+                                                    #get coefficient
+                                                    coeff_list_D = exp_coeff_P[i_ppp,:,1]
+                                                    
+                                                #Gaussian
+                                                for k_ppp in range(len(alpha_list_D)):
+                                                    gauss_D = YOCKO_math.gaussian(alpha_list_D[k_ppp],
+                                                                                  coeff_list_C[k_ppp])
+                                                    
+                                                    c = (i_pp + 1) * (j_pp + 1) - 1
+                                                    d = (i_ppp + 1) * (j_ppp +1) - 1
+                                                    
+                                                    multi_elec[a,b,c,d] = gauss_A.center * gauss_B.center * gauss_C.center * gauss_D.center * YOCKO_math.multi_electron(gauss_A,
+                                                                                                                                                                        gauss_B,
+                                                                                                                                                                        gauss_C,
+                                                                                                                                                                        gauss_D)
+                                                    
+                                
+    H_core = T + V
+                                
+    return S , T , V , multi_elec, H_core
+                
+                
 #The difference bewteen tthe two most recent successive density matrices 
-def Diff_Succ_DM(P_1,P_2):
-	x=0
-	size = YOCKO_tools.basis_size(file_name)
-	for i in range(size):
-		for j in range(size):
-			x+=B**-2*(P_1[i,j]-P_2[i,j])**2
-	return x**0.5
-
-#The initial guess for P will be the zero matrice
-
-
-
+def Diff_Succ_DM(P_1,P_2,file_name):
+     x=0
+     size = YOCKO_tools.basis_size(file_name)
+     for i in range(size):
+         for j in range(size):
+             x += size**-2*(P_1[i,j]-P_2[i,j])**2
+     return x**0.5
                 
                 
 
-if __name__ == '__main__':
-	
-    file_name = 'H2.xyz'
-    get_integrals(file_name)
+if __name__ == '__main__' :
+    
+    file_name_xyz = 'H2.xyz'
+    file_name_basis = 'sto-3g.1.gbs'
+    S , T , V, multi_elec, H_core = get_integrals(file_name_xyz,file_name_basis)
 size = YOCKO_tools.basis_size(file_name)
-	
+ 	
 P=np.zeros((size,size))
 P_prev=np.zeros((size,size))
 P_list=[]
@@ -84,15 +193,15 @@ Hcore= T+V
 threshold=100
 
 while threshold>10**-4:
-	G=np.zeros((size,size))
-	for i in range(size):
+ 	G=np.zeros((size,size))
+ 	for i in range(size):
 		for j in range(size):
-			for x in range(size):
+ 			for x in range(size):
 				for y in range(size):
-				   G[i,j]=+=P[x,y]*(multi_elec_tensor[i,j,y,x]-0.5*multi_elec_tensor[i,x,y,j])
-	Fock = Hcore + G
-	
-	
+ 				   G[i,j]+=P[x,y]*(multi_elec_tensor[i,j,y,x]-0.5*multi_elec_tensor[i,x,y,j])
+ 	Fock = Hcore + G
+ 	
+ 	
 Fock_orth=dot(X.T,dor(Fock,X))	
 evalFock_orth,C_orth=np.linalg.eig(Fock_orth)
 
@@ -100,13 +209,15 @@ index=evalFock_orth.argsort()
 evalFock_orth=evalFock_orth[index]
 C_orth=C_orth[:,index]
 C=dot(X,C_orth)
-N= #number of electrons, je ne trouve pas dans le code le nom de cette variable x)	
-	
+N =  #number of electrons, je ne trouve pas dans le code le nom de cette variable x)
+#Normal on ne l'a pas encore definie ;) , tu peux mettre ce code dans une fonction au dessus du if name == main ?
+#Tu peux faire rentrer le nombre d'électron comme variable de la fonction !	
+ 	
 #Form new density matrix P (sum over electron pairs, not over the entire basis set)
 for i in range (size):
-	for j in range (size):
+ 	for j in range (size):
 		for a in range(int(N/2)):
-			P[i,j]=2*C[i,a]*C[j,a]
+ 			P[i,j]=2*C[i,a]*C[j,a]
 P_list.append(P)
 treshold=Diff_Succ_DM(P_prev, P)
 P_prev=P.copy()
