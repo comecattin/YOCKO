@@ -168,6 +168,21 @@ def get_integrals(file_name_xyz,file_name_basis):
     return S , T , V , multi_elec, H_core
                 
                 
+
+def orthogonalisation(S):
+    """
+    Symetric orthogonalisation of the basis
+    """
+    evalS , U = np.linalg.eig(S)
+    diagS = np.dot(U.T,np.dot(S,U))
+    diagS_sqrt = np.diag(np.diagonal(diagS)**-0.5)
+    X = np.dot(U,np.dot(diagS_sqrt,U.T))
+    
+    return X
+
+                
+                
+                
 #The difference bewteen tthe two most recent successive density matrices 
 def Diff_Succ_DM(P_1,P_2,file_name):
      x=0
@@ -180,48 +195,62 @@ def Diff_Succ_DM(P_1,P_2,file_name):
  
  
 def Algo(N,file_name_xyz,file_name_basis):
-	H_core= get_integrals(file_name_xyz, file_name_basis)[4]
-	multi_elec_tensor=   get_integrals(file_name_xyz, file_name_basis)[3]        
-	size = YOCKO_tools.basis_size(file_name)
- 	
-	P=np.zeros((size,size))
-	P_prev=np.zeros((size,size))
-	P_list=[]
-	Hcore= T+V	
-	threshold=100
+    """
+    SCF Convergence algorithm
+    """
+    
+    S , T , V , multi_elec, H_core = get_integrals(file_name_xyz, file_name_basis)
+    size = YOCKO_tools.basis_size(file_name_xyz)
+    
+    P=np.zeros((size,size))	
+    P_prev=np.zeros((size,size))
+    P_list=[]
+    
+    threshold=100
 
-	while threshold>10**-4:
-			G=np.zeros((size,size))
-			for i in range(size):
-				 for j in range(size):
-					 	for x in range(size):
-							   for y in range(size):
-								       G[i,j]+=P[x,y]*(multi_elec_tensor[i,j,y,x]-0.5*multi_elec_tensor[i,x,y,j])
-	Fock = Hcore + G	
-	Fock_orth=dot(X.T,dor(Fock,X))
-	evalFock_orth, C_orth= np.linalg.eig(Fock_orth)	
+    while threshold>10**-4:
+        G=np.zeros((size,size))
+        for i in range(size):
+            for j in range(size):
+                for x in range(size):
+                    for y in range(size):
+                        G[i,j]+=P[x,y]*(multi_elec[i,j,y,x]-0.5*multi_elec[i,x,y,j])
+        X = orthogonalisation(S)
+        Fock = H_core + G	
+        Fock_orth = np.dot(X.T,np.dot(Fock,X))
+        evalFock_orth, C_orth= np.linalg.eig(Fock_orth)	
 
-	index=evalFock_orth.argsort()
-	evalFock_orth=evalFock_orth[index]
-	C_orth=C_orth[:,index]
-	C=dot(X,C_orth)	
- 	
-#Form new density matrix P (sum over electron pairs, not over the entire basis set)
-	for i in range (size):
-			for j in range (size):
-				for a in range(int(N/2)):
-						P[i,j]=2*C[i,a]*C[j,a]
-	P_list.append(P)
-	treshold=Diff_Succ_DM(P_prev, P)
-	P_prev=P.copy() 
-	return (P_prev)              
+        index=evalFock_orth.argsort()
+        evalFock_orth=evalFock_orth[index]
+        C_orth=C_orth[:,index]
+        C = np.dot(X,C_orth)	
+
+        #Form new density matrix P (sum over electron pairs, not over the entire basis set)
+        for i in range (size):
+            for j in range (size):
+                for a in range(int(N/2)):
+                    P[i,j]=2*C[i,a]*C[j,a]
+        P_list.append(P)
+        threshold=Diff_Succ_DM(P_prev, P, file_name_xyz)
+        P_prev=P.copy()
+    print('\n')
+    print("YOCKO took {} step to converge".format(len(P_list)))
+    print('\n')
+    print("The orbital energies are {} and {} Ha".format(evalFock_orth[0],evalFock_orth[1]))
+    print('\n')
+    print(f'The orbital matrix is: \n\n{C}')
+    print('\n')
+    print(f'The density/bound order matrix is \n\n{P}')
+    return (P_prev)
 
 if __name__ == '__main__' :
     
     file_name_xyz = 'H2.xyz'
     file_name_basis = 'sto-3g.1.gbs'
+    N = 2
     S , T , V, multi_elec, H_core = get_integrals(file_name_xyz,file_name_basis)
-
+    X = orthogonalisation(S)
+    Algo(N,file_name_xyz,file_name_basis)
 	
 	
 	
