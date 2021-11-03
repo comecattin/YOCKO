@@ -9,7 +9,7 @@ The chemistry part of YOCKO
 """
 
 import numpy as np
-from itertools import combinations
+import matplotlib.pyplot as plt
 import YOCKO_tools
 import YOCKO_math
 
@@ -241,7 +241,58 @@ def Algo(N,file_name_xyz,file_name_basis):
     print(f'The orbital matrix is: \n\n{C}')
     print('\n')
     print(f'The density/bound order matrix is \n\n{P}')
-    return (P_prev)
+    return (P_prev, evalFock_orth)
+
+def geometry_opt(file_name_xyz,file_name_basis,N):
+    """
+    Optimise the geometry of the molecule
+    """
+    
+    end = range(100)
+    x = []
+    y = []
+    
+    for i in end :
+        #read
+        N_atoms , atoms , coord = YOCKO_tools.read_xyz(file_name_xyz)
+        x_1 , x_2 = coord[:,0]
+        y_1 , y_2 = coord[:,1]
+        z_1 , z_2 = coord[:,2]
+        
+        #Distance
+        d = np.sqrt((x_1 - x_2)**2 + (y_1 - y_2)**2 + (z_1 - z_2)**2)
+        x.append(d)
+        
+        #Result
+        P_prev, evalFock_orth = Algo(N,file_name_xyz, file_name_basis)
+        y.append(evalFock_orth[0])
+        
+        #Update
+        coord[:,2] = coord[:,0] - 1/20
+        
+        YOCKO_tools.change_xyz(file_name_xyz,coord)
+        file_name_xyz = 'new.xyz'
+        
+        
+        print('SCF Done')
+    return x,y
+        
+
+        
+def geometry_opt_plot(x,y):
+    """
+    Plot the energy versus the inter-atomic distance 
+    """
+    
+    fig = plt.figure()
+    plt.plot(x,y,'*')
+    plt.show()
+    
+    
+    
+
+
+
 
 if __name__ == '__main__' :
     
@@ -250,7 +301,9 @@ if __name__ == '__main__' :
     N = 2
     S , T , V, multi_elec, H_core = get_integrals(file_name_xyz,file_name_basis)
     X = orthogonalisation(S)
-    Algo(N,file_name_xyz,file_name_basis)
+    #Algo(N,file_name_xyz,file_name_basis)
+    x , y = geometry_opt(file_name_xyz,file_name_basis,N)
+    geometry_opt_plot(x,y)
 	
 	
 	

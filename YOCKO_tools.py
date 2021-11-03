@@ -37,6 +37,19 @@ def read_xyz(file_name):
     coord = data[:,1:].astype(np.float)
     return N_atoms , atoms , coord
 
+def change_xyz(file_name_xyz,new_coord):
+    """
+    Update the xyz file
+    """
+    
+    N_atoms , atoms , coord = read_xyz(file_name_xyz)
+    f = open('new.xyz','w')
+    f.write(str(N_atoms)+'\n'
+            + atoms[0] + '    ' + str(new_coord[0,0]) + '    ' + str(new_coord[0,1]) + '    ' + str(new_coord[0,2]) + '\n'
+            + atoms[0] + '    ' + str(new_coord[1,0]) + '    ' + str(new_coord[1,1]) + '    ' + str(new_coord[1,2])
+            )
+    f.close()
+
 def charge():
     """
     Return dictionnary charge of each ion
@@ -161,5 +174,7 @@ if __name__ == '__main__':
     dico_quantum_number = quantum_number()
     
     basis_size = basis_size(file_name_xyz)
+    
+    change_xyz(file_name_xyz,coord)
     
 	
