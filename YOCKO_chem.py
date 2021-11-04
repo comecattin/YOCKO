@@ -10,6 +10,10 @@ The chemistry part of YOCKO
 
 import numpy as np
 import matplotlib.pyplot as plt
+plt.rcParams.update({
+    "text.usetex": True,
+    "font.family": "sans-serif",
+    "font.sans-serif": ["Helvetica"]})
 import YOCKO_tools
 import YOCKO_math
 
@@ -248,7 +252,7 @@ def geometry_opt(file_name_xyz,file_name_basis,N):
     Optimise the geometry of the molecule
     """
     
-    end = range(100)
+    end = range(200)
     x = []
     y = []
     
@@ -268,7 +272,7 @@ def geometry_opt(file_name_xyz,file_name_basis,N):
         y.append(evalFock_orth[0])
         
         #Update
-        coord[:,2] = coord[:,0] - 1/20
+        coord[0,0] = coord[0,0] + 1/25
         
         YOCKO_tools.change_xyz(file_name_xyz,coord)
         file_name_xyz = 'new.xyz'
@@ -281,12 +285,24 @@ def geometry_opt(file_name_xyz,file_name_basis,N):
         
 def geometry_opt_plot(x,y):
     """
-    Plot the energy versus the inter-atomic distance 
+    Plot the energy versus the inter-atomic distance
+    return the optimal distance
     """
     
+    #find the minimun
+    index_min = int(np.where(y==min(y))[0])
+    
+    
     fig = plt.figure()
-    plt.plot(x,y,'*')
+    plt.plot(x,y,'.',zorder=1)
+    plt.scatter(x[index_min],y[index_min],c='red',zorder=2)
+    plt.xlabel('Distance inter atomique')
+    plt.ylabel('Énergie')
+    plt.grid()
+    plt.savefig('diagramme.pdf')
     plt.show()
+    
+    return x[index_min]
     
     
     
@@ -303,7 +319,7 @@ if __name__ == '__main__' :
     X = orthogonalisation(S)
     #Algo(N,file_name_xyz,file_name_basis)
     x , y = geometry_opt(file_name_xyz,file_name_basis,N)
-    geometry_opt_plot(x,y)
+    d_min = geometry_opt_plot(x,y)
 	
 	
 	
